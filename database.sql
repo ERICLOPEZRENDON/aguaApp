@@ -115,6 +115,18 @@ CREATE TABLE evidencias_reporte (
     fecha_subida TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+
+CREATE TABLE solicitudes_arco (
+    id BIGSERIAL PRIMARY KEY,
+    usuario_auth_id BIGINT REFERENCES usuarios_auth(id) ON DELETE CASCADE NOT NULL,
+    tipo_derecho VARCHAR(20) NOT NULL, 
+    motivo TEXT NOT NULL,
+    estado_solicitud VARCHAR(30) DEFAULT 'PENDIENTE', 
+    respuesta_admin TEXT,
+    fecha_solicitud TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_resolucion TIMESTAMP
+);
+
 CREATE INDEX idx_reportes_colonia ON reportes(colonia_id);
 CREATE INDEX idx_historial_reporte ON historial_estados_reporte(reporte_id);
 
@@ -140,4 +152,8 @@ INSERT INTO codigos_postales (codigo) VALUES
 
 INSERT INTO usuarios_auth (rol_id, email, password_hash, activo) VALUES 
 (1, 'admin@aguaapp.com', 'hash_seguro_123', true),
-(2, 'ciudadano1@correo.com', 'hash_seguro_456', true); 
+(2, 'ciudadano1@correo.com', 'hash_seguro_456', true);
+
+INSERT INTO solicitudes_arco (usuario_auth_id, tipo_derecho, motivo, estado_solicitud, respuesta_admin) VALUES
+(2, 'ACCESO', 'Solicito copia de los datos personales vinculados a mi cuenta.', 'ATENDIDA', 'Se envió reporte de datos al correo registrado.'),
+(2, 'OPOSICION', 'Me opongo a recibir notificaciones ajenas al suministro de agua.', 'PENDIENTE', NULL);
