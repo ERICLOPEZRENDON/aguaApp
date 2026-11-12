@@ -73,6 +73,28 @@ public class UsuarioAuthController {
         }).orElse(ResponseEntity.notFound().build());
     }
 
+    /**
+     * Login contra PostgreSQL. Recibe {"email": "...", "passwordHash": "..."}.
+     * 400 si faltan datos, 401 si el email no existe o la contraseña no coincide,
+     * 403 si la cuenta está inactiva y 200 con el UsuarioAuth (y su Rol) si es correcto.
+     */
+    @PostMapping("/login")
+    public ResponseEntity<UsuarioAuth> login(@RequestBody UsuarioAuth credenciales) {
+        if (credenciales.getEmail() == null || credenciales.getEmail().isBlank()
+                || credenciales.getPasswordHash() == null || credenciales.getPasswordHash().isBlank()) {
+            return ResponseEntity.badRequest().build();
+        }
+        UsuarioAuth usuario = usuarioAuthRepository.findByEmail(credenciales.getEmail().trim()).orElse(null);
+        // Se valida la contraseña antes que "activo" para no revelar si una cuenta existe
+        if (usuario == null || !usuario.getPasswordHash().equals(credenciales.getPasswordHash())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        if (!Boolean.TRUE.equals(usuario.getActivo())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        return ResponseEntity.ok(usuario);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         if (!usuarioAuthRepository.existsById(id)) {
